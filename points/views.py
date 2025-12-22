@@ -2,8 +2,6 @@ from django.shortcuts import render
 from rest_framework import viewsets, status
 from rest_framework.decorators import action
 from rest_framework.response import Response
-from django.contrib.gis.geos import Point
-from django.contrib.gis.measure import D
 from .models import Point, Message
 from .serializers import PointSerializer, MessageSerializer
 
@@ -29,8 +27,13 @@ class PointViewSet(viewsets.ModelViewSet):
             radius = float(radius)
         except ValueError:
             return Response({'error': 'Invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
-        point = Point(lon, lat, srid=4326)
-        points = Point.objects.filter(location__distance_lte=(point, D(km=radius)))
+        # Approximate distance filter (1 degree ~ 111 km)
+        lat_range = radius / 111
+        lon_range = radius / (111 * abs(lat) or 1)  # Adjust for latitude
+        points = Point.objects.filter(
+            latitude__range=(lat - lat_range, lat + lat_range),
+            longitude__range=(lon - lon_range, lon + lon_range)
+        )
         serializer = self.get_serializer(points, many=True)
         return Response(serializer.data)
 
@@ -54,7 +57,12 @@ class MessageViewSet(viewsets.ModelViewSet):
             radius = float(radius)
         except ValueError:
             return Response({'error': 'Invalid parameters'}, status=status.HTTP_400_BAD_REQUEST)
-        point = Point(lon, lat, srid=4326)
-        messages = Message.objects.filter(point__location__distance_lte=(point, D(km=radius)))
+        # Approximate distance filter
+        lat_range = radius / 111
+        lon_range = radius / (111 * abs(lat) or 1)
+        messages = Message.objects.filter(
+            point__latitude__range=(lat - lat_range, lat + lat_range),
+            point__longitude__range=(lon - lon_range, lon + lon_range)
+        )
         serializer = self.get_serializer(messages, many=True)
         return Response(serializer.data)

@@ -37,9 +37,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    'django.contrib.gis',
     'rest_framework',
-    'rest_framework_gis',
     'rest_framework.authtoken',
     'points',
 ]
@@ -79,7 +77,7 @@ WSGI_APPLICATION = 'geopoints.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
+        'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
@@ -129,3 +127,7 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+GDAL_LIBRARY_PATH = r'C:\Users\0ri0n\miniconda3\Lib\site-packages\osgeo\gdal.dll'
+GEOS_LIBRARY_PATH = r'C:\Users\0ri0n\miniconda3\Lib\site-packages\osgeo\geos_c.dll'
+SPATIALITE_LIBRARY_PATH = r'C:\Users\0ri0n\miniconda3\Lib\site-packages\osgeo\mod_spatialite.dll'
