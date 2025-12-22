@@ -1,4 +1,5 @@
 from django.db import models
+from django.contrib.gis.db import models as gis_models
 from django.contrib.auth.models import User
 
 # Create your models here.
@@ -9,6 +10,7 @@ class Point(models.Model):
     description = models.TextField(blank=True)
     latitude = models.FloatField()
     longitude = models.FloatField()
+    location = gis_models.PointField(geography=True, srid=4326, null=True, blank=True)
 
     def __str__(self):
         return self.name
