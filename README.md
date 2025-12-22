@@ -117,3 +117,5 @@ python manage.py test
 - `points/`: App containing models, views, serializers
 - `manage.py`: Django management script
 - `requirements.txt`: Python dependencies
+
+end
