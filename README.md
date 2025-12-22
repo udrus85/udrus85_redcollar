@@ -29,19 +29,65 @@ A Django REST API backend for managing geographical points on a map, including p
    pip install -r requirements.txt
    ```
 
-4. Database:
-  - PostGIS (recommended): install PostGIS on your PostgreSQL server, create DB `geopoints`, enable extension:
-    ```sql
-    CREATE DATABASE geopoints;
-    \c geopoints
-    CREATE EXTENSION postgis;
-    ```
-    Provide env vars: `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT`. Optionally `USE_POSTGIS=1`.
+4. Database (PostGIS recommended):
+   - Install PostgreSQL with PostGIS extension
+   - Create database and enable PostGIS:
+     ```sql
+     CREATE DATABASE geopoints;
+     \c geopoints
+     CREATE EXTENSION postgis;
+     ```
+   - Create user and grant privileges:
+     ```sql
+     CREATE USER geopoints_user WITH PASSWORD 'strong_password';
+     GRANT CONNECT ON DATABASE geopoints TO geopoints_user;
+     GRANT USAGE, CREATE ON SCHEMA public TO geopoints_user;
+     ALTER DEFAULT PRIVILEGES IN SCHEMA public
+       GRANT SELECT, INSERT, UPDATE, DELETE ON TABLES TO geopoints_user;
+     ALTER DEFAULT PRIVILEGES IN SCHEMA public
+       GRANT USAGE, SELECT ON SEQUENCES TO geopoints_user;
+     ```
+
+5. **Windows Only: Install OSGeo4W for GDAL/GEOS**
+   - Download and install OSGeo4W 64-bit from https://www.osgeo.org/osgeo4w/
+   - During installation (Advanced Install), select packages:
+     - `gdal` (GDAL runtime)
+     - `geos` (GEOS library)
+     - `proj` (PROJ library)
+   - Set environment variables (PowerShell):
+     ```powershell
+     $env:OSGEO4W_ROOT="C:\OSGeo4W"  # or your install path
+     $env:GDAL_LIBRARY_PATH="$env:OSGEO4W_ROOT\bin\gdal312.dll"  # check actual version
+     $env:GEOS_LIBRARY_PATH="$env:OSGEO4W_ROOT\bin\geos_c.dll"
+     $env:PROJ_LIB="$env:OSGEO4W_ROOT\share\proj"
+     $env:GDAL_DATA="$env:OSGEO4W_ROOT\share\gdal"
+     $env:PATH="$env:OSGEO4W_ROOT\bin;$env:PATH"
+     ```
+   - Or add them to system environment variables permanently
+
+6. Set database connection environment variables:
+   ```bash
+   # Linux/Mac
+   export DB_NAME=geopoints
+   export DB_USER=geopoints_user
+   export DB_PASSWORD=your_password
+   export DB_HOST=localhost
+   export DB_PORT=5432
+   export USE_POSTGIS=1
+   ```
+   ```powershell
+   # Windows PowerShell
+   $env:DB_NAME="geopoints"
+   $env:DB_USER="geopoints_user"
+   $env:DB_PASSWORD="your_password"
+   $env:DB_HOST="localhost"
+   $env:DB_PORT="5432"
+   $env:USE_POSTGIS="1"
+   ```
   - SQLite fallback: if no env vars are set, the app will use SQLite (spatial search falls back to Haversine).
 
 5. Run migrations:
    ```bash
-   python manage.py makemigrations
    python manage.py migrate
    ```
 
@@ -104,12 +150,14 @@ curl -X POST http://localhost:8000/api/points/messages/ \
 ## Running Tests
 
 ```bash
-# With SQLite fallback (no PostGIS required):
+# With PostGIS (requires env vars and DB ready):
+# Ensure GDAL/GEOS/PROJ paths are set (see Windows setup above)
+# Use postgres superuser for tests (needs CREATE EXTENSION rights)
+DB_NAME=geopoints DB_USER=postgres DB_PASSWORD=*** DB_HOST=localhost DB_PORT=5432 USE_POSTGIS=1 \
 python manage.py test
 
-# With PostGIS (requires env vars and DB ready):
-DB_NAME=geopoints DB_USER=geopoints_user DB_PASSWORD=*** DB_HOST=localhost DB_PORT=5432 USE_POSTGIS=1 \
-python manage.py test
+# Or with SQLite fallback (no PostGIS required):
+USE_POSTGIS=0 python manage.py test
 ```
 
 ## Technical Description
