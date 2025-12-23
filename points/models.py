@@ -1,14 +1,22 @@
 from django.db import models
 from django.contrib.gis.db import models as gis_models
+from django.contrib.gis.geos import Point as GEOSPoint
 from django.contrib.auth.models import User
 
 # Create your models here.
 
-class Point(gis_models.Model):
+class Point(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     name = models.CharField(max_length=100)
     description = models.TextField(blank=True)
-    location = gis_models.PointField()
+    latitude = models.FloatField()
+    longitude = models.FloatField()
+    location = gis_models.PointField(geography=True, srid=4326, null=True, blank=True)
+
+    def save(self, *args, **kwargs):
+        if self.latitude is not None and self.longitude is not None and not self.location:
+            self.location = GEOSPoint(self.longitude, self.latitude, srid=4326)
+        super().save(*args, **kwargs)
 
     def __str__(self):
         return self.name

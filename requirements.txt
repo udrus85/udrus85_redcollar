@@ -2,4 +2,3 @@ Django>=4.0
 djangorestframework
 djangorestframework-gis
 psycopg2-binary
-GDAL

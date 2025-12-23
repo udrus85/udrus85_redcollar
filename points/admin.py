@@ -5,7 +5,7 @@ from .models import Point, Message
 
 @admin.register(Point)
 class PointAdmin(admin.ModelAdmin):
-    list_display = ['name', 'user', 'location']
+    list_display = ['name', 'user', 'latitude', 'longitude']
 
 @admin.register(Message)
 class MessageAdmin(admin.ModelAdmin):

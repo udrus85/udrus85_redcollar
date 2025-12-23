@@ -11,6 +11,26 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 from pathlib import Path
+import os
+
+# Ensure Windows can locate GDAL/GEOS/PROJ DLLs (Python 3.8+ requires explicit DLL directories)
+if os.name == 'nt':
+    dll_dirs = []
+    osgeo_root = os.environ.get('OSGEO4W_ROOT')
+    if osgeo_root:
+        dll_dirs.append(Path(osgeo_root) / 'bin')
+    gdal_path = os.environ.get('GDAL_LIBRARY_PATH')
+    if gdal_path:
+        dll_dirs.append(Path(gdal_path).parent)
+    geos_path = os.environ.get('GEOS_LIBRARY_PATH')
+    if geos_path:
+        dll_dirs.append(Path(geos_path).parent)
+    for d in dll_dirs:
+        if d and d.exists():
+            try:
+                os.add_dll_directory(str(d))
+            except Exception:
+                pass
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -39,7 +59,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'rest_framework',
-    'rest_framework_gis',
     'rest_framework.authtoken',
     'points',
 ]
@@ -77,12 +96,27 @@ WSGI_APPLICATION = 'geopoints.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.contrib.gis.db.backends.spatialite',
-        'NAME': BASE_DIR / 'db.sqlite3',
+USE_POSTGIS = os.environ.get('USE_POSTGIS', '1')  # default to PostGIS if env present
+
+if USE_POSTGIS and os.environ.get('DB_NAME'):
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.contrib.gis.db.backends.postgis',
+            'NAME': os.environ.get('DB_NAME'),
+            'USER': os.environ.get('DB_USER', ''),
+            'PASSWORD': os.environ.get('DB_PASSWORD', ''),
+            'HOST': os.environ.get('DB_HOST', 'localhost'),
+            'PORT': os.environ.get('DB_PORT', '5432'),
+        }
     }
-}
+else:
+    # Fallback for local dev without PostGIS (limited functionality)
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
@@ -129,3 +163,11 @@ REST_FRAMEWORK = {
         'rest_framework.permissions.IsAuthenticated',
     ],
 }
+
+# Optional: set these via environment when using OSGeo4W/Conda on Windows
+GDAL_LIBRARY_PATH = os.environ.get('GDAL_LIBRARY_PATH')
+GEOS_LIBRARY_PATH = os.environ.get('GEOS_LIBRARY_PATH')
+SPATIALITE_LIBRARY_PATH = os.environ.get('SPATIALITE_LIBRARY_PATH')
+PROJ_LIB = os.environ.get('PROJ_LIB')
+
+# Add PostGIS support with GeoDjango
