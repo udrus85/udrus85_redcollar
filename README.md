@@ -2,6 +2,14 @@
 
 A Django REST API backend for managing geographical points on a map, including point creation, messaging, and spatial search functionality.
 
+⚠️ **Проект использует PostgreSQL + PostGIS. SQLite используется как fallback без spatial index.**
+
+## Design Decisions
+
+- PostGIS is used for accurate spatial queries and indexing.
+- SQLite fallback uses Haversine formula for simplicity and portability.
+- Token authentication chosen for simplicity in test assignment.
+
 ## Requirements
 
 - Python 3.10+
@@ -84,19 +92,19 @@ A Django REST API backend for managing geographical points on a map, including p
    $env:DB_PORT="5432"
    $env:USE_POSTGIS="1"
    ```
-  - SQLite fallback: if no env vars are set, the app will use SQLite (spatial search falls back to Haversine).
+   - SQLite fallback: if no env vars are set, the app will use SQLite (spatial search falls back to Haversine).
 
-5. Run migrations:
+7. Run migrations:
    ```bash
    python manage.py migrate
    ```
 
-6. Create a superuser:
+8. Create a superuser:
    ```bash
    python manage.py createsuperuser
    ```
 
-7. Run the server:
+9. Run the server:
    ```bash
    python manage.py runserver
    ```
@@ -107,6 +115,16 @@ A Django REST API backend for managing geographical points on a map, including p
 All endpoints require Token authentication.
 
 - Obtain token: `POST /api/auth/token/` with form data `username`, `password`
+
+### Endpoints Summary
+
+| Method | Endpoint | Description | Auth Required |
+|--------|----------|-------------|---------------|
+| POST | `/api/auth/token/` | Obtain authentication token | No |
+| POST | `/api/points/` | Create a new point | Yes |
+| GET | `/api/points/search/` | Search points within radius | Yes |
+| POST | `/api/points/messages/` | Create a message for a point | Yes |
+| GET | `/api/points/messages/search/` | Search messages by point location | Yes |
 
 ### Points
 - **POST /api/points/**: create a point
