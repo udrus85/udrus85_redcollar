@@ -1,51 +1,51 @@
 # GeoPoints Backend Application
 
-A Django REST API backend for managing geographical points on a map, including point creation, messaging, and spatial search functionality.
+Django REST API бэкенд для управления географическими точками на карте: создание точек, обмен сообщениями и пространственный поиск.
 
 ⚠️ **Проект использует PostgreSQL + PostGIS. SQLite используется как fallback без spatial index.**
 
-## Design Decisions
+## Архитектурные решения
 
-- PostGIS is used for accurate spatial queries and indexing.
-- SQLite fallback uses Haversine formula for simplicity and portability.
-- Token authentication chosen for simplicity in test assignment.
+- PostGIS используется для точных пространственных запросов и индексирования.
+- SQLite fallback использует формулу Haversine для простоты и портативности.
+- Token аутентификация выбрана для простоты в рамках тестового задания.
 
-## Requirements
+## Требования
 
 - Python 3.10+
-- Django 4+ or 5+
+- Django 4+ или 5+
 - Django REST Framework
-- PostgreSQL with PostGIS (recommended) or SQLite with SpatiaLite
+- PostgreSQL с PostGIS (рекомендуется) или SQLite с SpatiaLite
 - GeoDjango
 
-## Installation
+## Установка
 
-1. Clone the repository:
+1. Клонируйте репозиторий:
   ```bash
   git clone <repository-url>
   cd udrus85_redcollar
   ```
 
-2. Create a virtual environment:
+2. Создайте виртуальное окружение:
    ```bash
    python -m venv env
-   source env/bin/activate  # On Windows: env\Scripts\activate
+   source env/bin/activate  # На Windows: env\Scripts\activate
    ```
 
-3. Install dependencies:
+3. Установите зависимости:
    ```bash
    pip install -r requirements.txt
    ```
 
-4. Database (PostGIS recommended):
-   - Install PostgreSQL with PostGIS extension
-   - Create database and enable PostGIS:
+4. База данных (рекомендуется PostGIS):
+   - Установите PostgreSQL с расширением PostGIS
+   - Создайте базу данных и включите PostGIS:
      ```sql
      CREATE DATABASE geopoints;
      \c geopoints
      CREATE EXTENSION postgis;
      ```
-   - Create user and grant privileges:
+   - Создайте пользователя и выдайте права:
      ```sql
      CREATE USER geopoints_user WITH PASSWORD 'strong_password';
      GRANT CONNECT ON DATABASE geopoints TO geopoints_user;
@@ -56,24 +56,24 @@ A Django REST API backend for managing geographical points on a map, including p
        GRANT USAGE, SELECT ON SEQUENCES TO geopoints_user;
      ```
 
-5. **Windows Only: Install OSGeo4W for GDAL/GEOS**
-   - Download and install OSGeo4W 64-bit from https://www.osgeo.org/osgeo4w/
-   - During installation (Advanced Install), select packages:
+5. **Только для Windows: Установите OSGeo4W для GDAL/GEOS**
+   - Скачайте и установите OSGeo4W 64-bit с https://www.osgeo.org/osgeo4w/
+   - При установке (Advanced Install) выберите пакеты:
      - `gdal` (GDAL runtime)
-     - `geos` (GEOS library)
-     - `proj` (PROJ library)
-   - Set environment variables (PowerShell):
+     - `geos` (библиотека GEOS)
+     - `proj` (библиотека PROJ)
+   - Установите переменные окружения (PowerShell):
      ```powershell
-     $env:OSGEO4W_ROOT="C:\OSGeo4W"  # or your install path
-     $env:GDAL_LIBRARY_PATH="$env:OSGEO4W_ROOT\bin\gdal312.dll"  # check actual version
+     $env:OSGEO4W_ROOT="C:\OSGeo4W"  # или ваш путь установки
+     $env:GDAL_LIBRARY_PATH="$env:OSGEO4W_ROOT\bin\gdal312.dll"  # проверьте версию
      $env:GEOS_LIBRARY_PATH="$env:OSGEO4W_ROOT\bin\geos_c.dll"
      $env:PROJ_LIB="$env:OSGEO4W_ROOT\share\proj"
      $env:GDAL_DATA="$env:OSGEO4W_ROOT\share\gdal"
      $env:PATH="$env:OSGEO4W_ROOT\bin;$env:PATH"
      ```
-   - Or add them to system environment variables permanently
+   - Или добавьте их в системные переменные окружения постоянно
 
-6. Set database connection environment variables:
+6. Установите переменные окружения для подключения к БД:
    ```bash
    # Linux/Mac
    export DB_NAME=geopoints
@@ -92,105 +92,105 @@ A Django REST API backend for managing geographical points on a map, including p
    $env:DB_PORT="5432"
    $env:USE_POSTGIS="1"
    ```
-   - SQLite fallback: if no env vars are set, the app will use SQLite (spatial search falls back to Haversine).
+   - SQLite fallback: если переменные не установлены, приложение использует SQLite (пространственный поиск переключается на Haversine).
 
-7. Run migrations:
+7. Выполните миграции:
    ```bash
    python manage.py migrate
    ```
 
-8. Create a superuser:
+8. Создайте суперпользователя:
    ```bash
    python manage.py createsuperuser
    ```
 
-9. Run the server:
+9. Запустите сервер:
    ```bash
    python manage.py runserver
    ```
 
-## API Endpoints
+## API Эндпоинты
 
-### Authentication
-All endpoints require Token authentication.
+### Аутентификация
+Все эндпоинты требуют Token аутентификацию.
 
-- Obtain token: `POST /api/auth/token/` with form data `username`, `password`
+- Получение токена: `POST /api/auth/token/` с form data `username`, `password`
 
-### Endpoints Summary
+### Краткая таблица эндпоинтов
 
-| Method | Endpoint | Description | Auth Required |
-|--------|----------|-------------|---------------|
-| POST | `/api/auth/token/` | Obtain authentication token | No |
-| POST | `/api/points/` | Create a new point | Yes |
-| GET | `/api/points/search/` | Search points within radius | Yes |
-| POST | `/api/points/messages/` | Create a message for a point | Yes |
-| GET | `/api/points/messages/search/` | Search messages by point location | Yes |
+| Метод | Эндпоинт | Описание | Требуется Auth |
+|-------|----------|----------|----------------|
+| POST | `/api/auth/token/` | Получить токен аутентификации | Нет |
+| POST | `/api/points/` | Создать новую точку | Да |
+| GET | `/api/points/search/` | Поиск точек в радиусе | Да |
+| POST | `/api/points/messages/` | Создать сообщение для точки | Да |
+| GET | `/api/points/messages/search/` | Поиск сообщений по локации точки | Да |
 
-### Points
-- **POST /api/points/**: create a point
-  - JSON (either form):
-    - Lat/Lon: `{ "name": "Point Name", "description": "Description", "latitude": 55.75, "longitude": 37.61 }`
-    - GeoJSON: `{ "name": "Point Name", "location": { "type": "Point", "coordinates": [37.61, 55.75] } }`  (lon, lat)
+### Точки
+- **POST /api/points/**: создать точку
+  - JSON (любой формат):
+    - Lat/Lon: `{ "name": "Название", "description": "Описание", "latitude": 55.75, "longitude": 37.61 }`
+    - GeoJSON: `{ "name": "Название", "location": { "type": "Point", "coordinates": [37.61, 55.75] } }`  (lon, lat)
 
-- **GET /api/points/search/?latitude=<lat>&longitude=<lon>&radius=<km>**: search points within radius (km)
+- **GET /api/points/search/?latitude=<lat>&longitude=<lon>&radius=<km>**: поиск точек в радиусе (км)
 
-### Messages
-- **POST /api/points/messages/**: create a message for a point
-  - JSON: `{ "point": <point_id>, "content": "Message content" }`
+### Сообщения
+- **POST /api/points/messages/**: создать сообщение для точки
+  - JSON: `{ "point": <point_id>, "content": "Текст сообщения" }`
 
-- **GET /api/points/messages/search/?latitude=<lat>&longitude=<lon>&radius=<km>**: search messages by the position of their point
+- **GET /api/points/messages/search/?latitude=<lat>&longitude=<lon>&radius=<km>**: поиск сообщений по позиции их точек
 
-## Example Requests
+## Примеры запросов
 
-### Create Point
+### Создание точки
 ```bash
 curl -X POST http://localhost:8000/api/points/ \
-  -H "Authorization: Token <your-token>" \
+  -H "Authorization: Token <ваш-токен>" \
   -H "Content-Type: application/json" \
-  -d '{"name": "My Point", "description": "Optional", "latitude": 37.7749, "longitude": -122.4194}'
+  -d '{"name": "Моя точка", "description": "Опционально", "latitude": 37.7749, "longitude": -122.4194}'
 ```
 
-### Search Points
+### Поиск точек
 ```bash
 curl -X GET "http://localhost:8000/api/points/search/?latitude=37.7749&longitude=-122.4194&radius=10" \
-  -H "Authorization: Token <your-token>"
+  -H "Authorization: Token <ваш-токен>"
 ```
-With PostGIS enabled, search uses `distance_lte`. Otherwise it falls back to Haversine.
+При включенном PostGIS поиск использует `distance_lte`. Иначе используется Haversine.
 
-### Create Message
+### Создание сообщения
 ```bash
 curl -X POST http://localhost:8000/api/points/messages/ \
-  -H "Authorization: Token <your-token>" \
+  -H "Authorization: Token <ваш-токен>" \
   -H "Content-Type: application/json" \
-  -d '{"point": 1, "content": "Hello from this point!"}'
+  -d '{"point": 1, "content": "Привет из этой точки!"}'
 ```
 
-## Running Tests
+## Запуск тестов
 
 ```bash
-# With PostGIS (requires env vars and DB ready):
-# Ensure GDAL/GEOS/PROJ paths are set (see Windows setup above)
-# Use postgres superuser for tests (needs CREATE EXTENSION rights)
+# С PostGIS (требуются переменные окружения и готовая БД):
+# Убедитесь, что пути GDAL/GEOS/PROJ установлены (см. настройку Windows выше)
+# Используйте postgres суперпользователя для тестов (нужны права CREATE EXTENSION)
 DB_NAME=geopoints DB_USER=postgres DB_PASSWORD=*** DB_HOST=localhost DB_PORT=5432 USE_POSTGIS=1 \
 python manage.py test
 
-# Or with SQLite fallback (no PostGIS required):
+# Или с SQLite fallback (PostGIS не требуется):
 USE_POSTGIS=0 python manage.py test
 ```
 
-## Technical Description
+## Техническое описание
 
-- **Backend**: Django with Django REST Framework
-- **Database**: PostgreSQL with PostGIS for spatial operations
-- **Authentication**: Token-based authentication
-- **Spatial Queries**: Uses GeoDjango for distance-based searches
-- **Serialization**: GeoJSON format for geographical data
+- **Backend**: Django с Django REST Framework
+- **База данных**: PostgreSQL с PostGIS для пространственных операций
+- **Аутентификация**: Token-based аутентификация
+- **Пространственные запросы**: Использует GeoDjango для поиска на основе расстояния
+- **Сериализация**: Формат GeoJSON для географических данных
 
-## Project Structure
+## Структура проекта
 
-- `geopoints/`: Main Django project
-- `points/`: App containing models, views, serializers
-- `manage.py`: Django management script
-- `requirements.txt`: Python dependencies
+- `geopoints/`: Главный проект Django
+- `points/`: Приложение с моделями, views, serializers
+- `manage.py`: Скрипт управления Django
+- `requirements.txt`: Python зависимости
 
 end
