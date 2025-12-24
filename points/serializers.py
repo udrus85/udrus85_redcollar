@@ -27,8 +27,30 @@ class PointSerializer(serializers.ModelSerializer):
         location = data.get('location')
         lat = data.get('latitude')
         lon = data.get('longitude')
+        
+        # Проверка конфликта: нельзя передавать оба формата одновременно
+        if location and (lat is not None or lon is not None):
+            raise serializers.ValidationError(
+                "Нельзя передавать одновременно 'location' и 'latitude/longitude'."
+            )
+        
+        # Проверка что хотя бы один формат передан
         if not location and (lat is None or lon is None):
-            raise serializers.ValidationError("Необходимо указать либо 'location', либо оба параметра 'latitude' и 'longitude'.")
+            raise serializers.ValidationError(
+                "Необходимо указать либо 'location', либо оба параметра 'latitude' и 'longitude'."
+            )
+        
+        # Проверка типа геометрии - только Point
+        if location and location.geom_type != 'Point':
+            raise serializers.ValidationError(
+                "location должен быть типа Point."
+            )
+        
+        # Проверка и преобразование SRID
+        if location and location.srid != 4326:
+            location.transform(4326)
+            data['location'] = location
+        
         return data
 
     def create(self, validated_data):

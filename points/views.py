@@ -1,9 +1,11 @@
 from math import atan2, cos, radians, sin, sqrt
 
+from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point as GEOSPoint
 from django.contrib.gis.measure import D
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
+from rest_framework.permissions import IsAuthenticated
 from rest_framework.response import Response
 
 from .models import Message, Point
@@ -17,7 +19,11 @@ def _parse_geo_params(request):
     if not all([lat, lon, radius]):
         return None, None, None, Response({'error': 'latitude, longitude, radius are required'}, status=status.HTTP_400_BAD_REQUEST)
     try:
-        return float(lat), float(lon), float(radius), None
+        lat, lon, radius = float(lat), float(lon), float(radius)
+        # Валидация радиуса
+        if radius <= 0 or radius > 1000:
+            return None, None, None, Response({'error': 'radius must be between 0 and 1000 km'}, status=status.HTTP_400_BAD_REQUEST)
+        return lat, lon, radius, None
     except (TypeError, ValueError):
         return None, None, None, Response({'error': 'Invalid geo parameters'}, status=status.HTTP_400_BAD_REQUEST)
 
@@ -33,6 +39,7 @@ def _haversine_km(lat1, lon1, lat2, lon2):
 class PointViewSet(viewsets.ModelViewSet):
     queryset = Point.objects.all()
     serializer_class = PointSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -45,11 +52,18 @@ class PointViewSet(viewsets.ModelViewSet):
 
         try:
             center = GEOSPoint(lon, lat, srid=4326)
+            # Поиск с сортировкой по расстоянию
             qs = Point.objects.filter(location__distance_lte=(center, D(km=radius)))
+            qs = qs.annotate(distance=Distance('location', center)).order_by('distance')
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
-        except Exception:
-            points = [p for p in Point.objects.all() if _haversine_km(lat, lon, p.latitude, p.longitude) <= radius]
+        except Exception as e:
+            # Fallback на Haversine (без PostGIS или для SQLite)
+            # Ограничиваем только точками с координатами
+            points = [
+                p for p in Point.objects.exclude(latitude__isnull=True, longitude__isnull=True)
+                if _haversine_km(lat, lon, p.latitude, p.longitude) <= radius
+            ]
             serializer = self.get_serializer(points, many=True)
             return Response(serializer.data)
 
@@ -57,6 +71,7 @@ class PointViewSet(viewsets.ModelViewSet):
 class MessageViewSet(viewsets.ModelViewSet):
     queryset = Message.objects.select_related('point', 'user')
     serializer_class = MessageSerializer
+    permission_classes = [IsAuthenticated]
 
     def perform_create(self, serializer):
         serializer.save(user=self.request.user)
@@ -69,10 +84,16 @@ class MessageViewSet(viewsets.ModelViewSet):
 
         try:
             center = GEOSPoint(lon, lat, srid=4326)
+            # Поиск с сортировкой по расстоянию точки
             qs = Message.objects.select_related('point').filter(point__location__distance_lte=(center, D(km=radius)))
+            qs = qs.annotate(distance=Distance('point__location', center)).order_by('distance')
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
-        except Exception:
-            messages = [m for m in Message.objects.select_related('point') if _haversine_km(lat, lon, m.point.latitude, m.point.longitude) <= radius]
+        except Exception as e:
+            # Fallback на Haversine
+            messages = [
+                m for m in Message.objects.select_related('point').exclude(point__latitude__isnull=True, point__longitude__isnull=True)
+                if _haversine_km(lat, lon, m.point.latitude, m.point.longitude) <= radius
+            ]
             serializer = self.get_serializer(messages, many=True)
             return Response(serializer.data)
