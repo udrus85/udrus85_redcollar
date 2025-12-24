@@ -13,6 +13,16 @@ class PointSerializer(serializers.ModelSerializer):
         fields = ['id', 'user', 'name', 'description', 'latitude', 'longitude', 'location']
         read_only_fields = ['id', 'user']
 
+    def validate_latitude(self, value):
+        if value is not None and not (-90 <= value <= 90):
+            raise serializers.ValidationError("Latitude must be between -90 and 90.")
+        return value
+
+    def validate_longitude(self, value):
+        if value is not None and not (-180 <= value <= 180):
+            raise serializers.ValidationError("Longitude must be between -180 and 180.")
+        return value
+
     def validate(self, data):
         location = data.get('location')
         lat = data.get('latitude')
