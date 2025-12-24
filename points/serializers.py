@@ -15,12 +15,12 @@ class PointSerializer(serializers.ModelSerializer):
 
     def validate_latitude(self, value):
         if value is not None and not (-90 <= value <= 90):
-            raise serializers.ValidationError("Latitude must be between -90 and 90.")
+            raise serializers.ValidationError("Широта должна быть в диапазоне от -90 до 90.")
         return value
 
     def validate_longitude(self, value):
         if value is not None and not (-180 <= value <= 180):
-            raise serializers.ValidationError("Longitude must be between -180 and 180.")
+            raise serializers.ValidationError("Долгота должна быть в диапазоне от -180 до 180.")
         return value
 
     def validate(self, data):
@@ -28,7 +28,7 @@ class PointSerializer(serializers.ModelSerializer):
         lat = data.get('latitude')
         lon = data.get('longitude')
         if not location and (lat is None or lon is None):
-            raise serializers.ValidationError("Either 'location' or both 'latitude' and 'longitude' must be provided.")
+            raise serializers.ValidationError("Необходимо указать либо 'location', либо оба параметра 'latitude' и 'longitude'.")
         return data
 
     def create(self, validated_data):
