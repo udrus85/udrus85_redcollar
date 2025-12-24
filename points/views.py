@@ -17,15 +17,15 @@ def _parse_geo_params(request):
     lon = request.query_params.get('longitude') or request.query_params.get('lon')
     radius = request.query_params.get('radius')
     if not all([lat, lon, radius]):
-        return None, None, None, Response({'error': 'latitude, longitude, radius are required'}, status=status.HTTP_400_BAD_REQUEST)
+        return None, None, None, Response({'error': 'Требуются параметры latitude, longitude и radius'}, status=status.HTTP_400_BAD_REQUEST)
     try:
         lat, lon, radius = float(lat), float(lon), float(radius)
         # Валидация радиуса
         if radius <= 0 or radius > 1000:
-            return None, None, None, Response({'error': 'radius must be between 0 and 1000 km'}, status=status.HTTP_400_BAD_REQUEST)
+            return None, None, None, Response({'error': 'Радиус должен быть в диапазоне от 0 до 1000 км'}, status=status.HTTP_400_BAD_REQUEST)
         return lat, lon, radius, None
     except (TypeError, ValueError):
-        return None, None, None, Response({'error': 'Invalid geo parameters'}, status=status.HTTP_400_BAD_REQUEST)
+        return None, None, None, Response({'error': 'Некорректные географические параметры'}, status=status.HTTP_400_BAD_REQUEST)
 
 
 def _haversine_km(lat1, lon1, lat2, lon2):
