@@ -3,7 +3,7 @@ from django.contrib.gis.db import models as gis_models
 from django.contrib.gis.geos import Point as GEOSPoint
 from django.contrib.auth.models import User
 
-# Create your models here.
+# Создайте здесь ваши модели.
 
 class Point(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE, related_name='points')

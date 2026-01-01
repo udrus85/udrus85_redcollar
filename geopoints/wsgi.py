@@ -1,9 +1,9 @@
 """
-WSGI config for geopoints project.
+Конфигурация WSGI для проекта geopoints.
 
-It exposes the WSGI callable as a module-level variable named ``application``.
+Предоставляет WSGI callable как переменную уровня модуля с именем ``application``.
 
-For more information on this file, see
+Для получения дополнительной информации об этом файле см.:
 https://docs.djangoproject.com/en/6.0/howto/deployment/wsgi/
 """
 

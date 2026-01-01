@@ -1,9 +1,9 @@
 """
-ASGI config for geopoints project.
+Конфигурация ASGI для проекта geopoints.
 
-It exposes the ASGI callable as a module-level variable named ``application``.
+Предоставляет ASGI callable как переменную уровня модуля с именем ``application``.
 
-For more information on this file, see
+Для получения дополнительной информации об этом файле см.:
 https://docs.djangoproject.com/en/6.0/howto/deployment/asgi/
 """
 

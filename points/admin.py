@@ -1,7 +1,7 @@
 from django.contrib import admin
 from .models import Point, Message
 
-# Register your models here.
+# Зарегистрируйте здесь ваши модели.
 
 @admin.register(Point)
 class PointAdmin(admin.ModelAdmin):
