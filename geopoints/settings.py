@@ -40,12 +40,12 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # См. https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
 
 # ПРЕДУПРЕЖДЕНИЕ БЕЗОПАСНОСТИ: держите секретный ключ, используемый в продакшене, в секрете!
-SECRET_KEY = 'django-insecure-r+kw@_=j@)_w!$(2n62#q=w@!!tk8ov!j6(9b_5)@7kl5gtd+l'
+SECRET_KEY = os.environ.get('SECRET_KEY', 'django-insecure-r+kw@_=j@)_w!$(2n62#q=w@!!tk8ov!j6(9b_5)@7kl5gtd+l')
 
 # ПРЕДУПРЕЖДЕНИЕ БЕЗОПАСНОСТИ: не запускайте с включённым режимом отладки в продакшене!
-DEBUG = True
+DEBUG = os.environ.get('DEBUG', 'True') == 'True'
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = os.environ.get('ALLOWED_HOSTS', '*').split(',')
 
 
 # Определение приложения
@@ -171,3 +171,10 @@ SPATIALITE_LIBRARY_PATH = os.environ.get('SPATIALITE_LIBRARY_PATH')
 PROJ_LIB = os.environ.get('PROJ_LIB')
 
 # Добавить поддержку PostGIS с помощью GeoDjango
+
+# Тип поля первичного ключа по умолчанию
+# https://docs.djangoproject.com/en/6.0/ref/settings/#default-auto-field
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# CSRF настройки для продакшн окружения
+CSRF_TRUSTED_ORIGINS = os.environ.get('CSRF_TRUSTED_ORIGINS', '').split(',') if os.environ.get('CSRF_TRUSTED_ORIGINS') else []
