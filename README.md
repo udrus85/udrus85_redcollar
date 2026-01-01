@@ -18,6 +18,17 @@ Django REST API бэкенд для управления географичес�
 - PostgreSQL с PostGIS (рекомендуется) или SQLite с SpatiaLite
 - GeoDjango
 
+## 🔒 Безопасность
+
+⚠️ **ВАЖНО:** Перед развертыванием в продакшен:
+1. Установите уникальный `SECRET_KEY` через переменную окружения
+2. Установите `DEBUG=False`
+3. Настройте `ALLOWED_HOSTS` на ваш домен
+4. Настройте `CSRF_TRUSTED_ORIGINS` для HTTPS
+5. Используйте сильные пароли для базы данных
+
+См. `.env.example` для полного списка настроек безопасности.
+
 ## Установка
 
 1. Клонируйте репозиторий:
@@ -76,6 +87,9 @@ Django REST API бэкенд для управления географичес�
 6. Установите переменные окружения для подключения к БД:
    ```bash
    # Linux/Mac
+   export SECRET_KEY="your-unique-secret-key"  # ОБЯЗАТЕЛЬНО для продакшена
+   export DEBUG="True"  # Установите False в продакшене
+   export ALLOWED_HOSTS="localhost,127.0.0.1"  # Ваш домен в продакшене
    export DB_NAME=geopoints
    export DB_USER=geopoints_user
    export DB_PASSWORD=your_password
@@ -85,6 +99,9 @@ Django REST API бэкенд для управления географичес�
    ```
    ```powershell
    # Windows PowerShell
+   $env:SECRET_KEY="your-unique-secret-key"  # ОБЯЗАТЕЛЬНО для продакшена
+   $env:DEBUG="True"  # Установите False в продакшене
+   $env:ALLOWED_HOSTS="localhost,127.0.0.1"  # Ваш домен в продакшене
    $env:DB_NAME="geopoints"
    $env:DB_USER="geopoints_user"
    $env:DB_PASSWORD="your_password"
@@ -92,7 +109,7 @@ Django REST API бэкенд для управления географичес�
    $env:DB_PORT="5432"
    $env:USE_POSTGIS="1"
    ```
-   - SQLite fallback: если переменные не установлены, приложение использует SQLite (пространственный поиск переключается на Haversine).
+   - SQLite fallback: если переменные не установлены, приложение использует SpatiaLite (требует `libsqlite3-mod-spatialite`).
 
 7. Выполните миграции:
    ```bash
