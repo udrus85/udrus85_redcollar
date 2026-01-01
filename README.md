@@ -22,7 +22,7 @@ Django REST API бэкенд для управления географичес�
 
 1. Клонируйте репозиторий:
   ```bash
-  git clone <repository-url>
+  git clone https://github.com/udrus85/udrus85_redcollar
   cd udrus85_redcollar
   ```
 
