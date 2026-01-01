@@ -100,6 +100,13 @@ class PointViewSet(viewsets.ModelViewSet):
             # Поиск с сортировкой по расстоянию
             qs = Point.objects.filter(location__distance_lte=(center, D(km=radius)))
             qs = qs.annotate(distance=Distance('location', center)).order_by('distance')
+            
+            # Применяем пагинацию
+            page = self.paginate_queryset(qs)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
         except Exception as e:
@@ -110,6 +117,13 @@ class PointViewSet(viewsets.ModelViewSet):
                 p for p in Point.objects.exclude(latitude__isnull=True, longitude__isnull=True)
                 if _haversine_km(lat, lon, p.latitude, p.longitude) <= radius
             ]
+            
+            # Применяем пагинацию к списку
+            page = self.paginate_queryset(points)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
             serializer = self.get_serializer(points, many=True)
             return Response(serializer.data)
 
@@ -143,6 +157,13 @@ class MessageViewSet(viewsets.ModelViewSet):
             # Поиск с сортировкой по расстоянию точки
             qs = Message.objects.select_related('point').filter(point__location__distance_lte=(center, D(km=radius)))
             qs = qs.annotate(distance=Distance('point__location', center)).order_by('distance')
+            
+            # Применяем пагинацию
+            page = self.paginate_queryset(qs)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
         except Exception as e:
@@ -152,5 +173,12 @@ class MessageViewSet(viewsets.ModelViewSet):
                 m for m in Message.objects.select_related('point').exclude(point__latitude__isnull=True, point__longitude__isnull=True)
                 if _haversine_km(lat, lon, m.point.latitude, m.point.longitude) <= radius
             ]
+            
+            # Применяем пагинацию к списку
+            page = self.paginate_queryset(messages)
+            if page is not None:
+                serializer = self.get_serializer(page, many=True)
+                return self.get_paginated_response(serializer.data)
+            
             serializer = self.get_serializer(messages, many=True)
             return Response(serializer.data)
