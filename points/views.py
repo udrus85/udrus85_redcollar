@@ -3,7 +3,9 @@ import logging
 
 from django.contrib.gis.db.models.functions import Distance
 from django.contrib.gis.geos import Point as GEOSPoint
+from django.contrib.gis.geos.error import GEOSException
 from django.contrib.gis.measure import D
+from django.db.utils import OperationalError, ProgrammingError
 from rest_framework import status, viewsets
 from rest_framework.decorators import action
 from rest_framework.permissions import IsAuthenticated
@@ -109,7 +111,7 @@ class PointViewSet(viewsets.ModelViewSet):
             
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
-        except Exception as e:
+        except (OperationalError, ProgrammingError, GEOSException) as e:
             # Fallback на Haversine (без PostGIS или для SQLite)
             logger.warning(f"PostGIS query failed, falling back to Haversine: {e}")
             # Ограничиваем только точками с координатами
@@ -166,7 +168,7 @@ class MessageViewSet(viewsets.ModelViewSet):
             
             serializer = self.get_serializer(qs, many=True)
             return Response(serializer.data)
-        except Exception as e:
+        except (OperationalError, ProgrammingError, GEOSException) as e:
             # Fallback на Haversine
             logger.warning(f"PostGIS query failed, falling back to Haversine: {e}")
             messages = [

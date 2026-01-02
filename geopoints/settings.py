@@ -96,7 +96,7 @@ WSGI_APPLICATION = 'geopoints.wsgi.application'
 # База данных
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-USE_POSTGIS = os.environ.get('USE_POSTGIS', '1')  # по умолчанию PostGIS, если переменная окружения присутствует
+USE_POSTGIS = os.environ.get('USE_POSTGIS', '1') == '1'  # по умолчанию PostGIS, если переменная окружения присутствует
 
 if USE_POSTGIS and os.environ.get('DB_NAME'):
     DATABASES = {

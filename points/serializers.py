@@ -48,6 +48,7 @@ class PointSerializer(serializers.ModelSerializer):
         
         # Проверка и преобразование SRID
         if location and location.srid != 4326:
+            location = location.clone()
             location.transform(4326)
             data['location'] = location
         
