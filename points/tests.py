@@ -82,7 +82,8 @@ class ExceptionHandlingTest(APITestCase):
     @patch('points.views.Point.objects.filter')
     def test_point_search_handles_operational_error(self, mock_filter):
         """Test that OperationalError triggers Haversine fallback."""
-        mock_filter.side_effect = OperationalError("PostGIS not available")
+        # Mock the query chain to raise OperationalError
+        mock_filter.return_value.annotate.side_effect = OperationalError("PostGIS not available")
         
         url = reverse('points-search') + '?latitude=0&longitude=0&radius=5'
         response = self.client.get(url)
@@ -94,7 +95,10 @@ class ExceptionHandlingTest(APITestCase):
     def test_message_search_handles_operational_error(self, mock_select):
         """Test that OperationalError triggers Haversine fallback for messages."""
         Message.objects.create(user=self.user, point=self.point, content='Test')
-        mock_select.return_value.filter.side_effect = OperationalError("PostGIS not available")
+        
+        # Mock the entire query chain to raise OperationalError
+        mock_qs = mock_select.return_value
+        mock_qs.filter.return_value.annotate.side_effect = OperationalError("PostGIS not available")
         
         url = reverse('messages-search') + '?latitude=0&longitude=0&radius=5'
         response = self.client.get(url)
