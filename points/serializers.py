@@ -84,3 +84,10 @@ class MessageSerializer(serializers.ModelSerializer):
         model = Message
         fields = ['id', 'user', 'point', 'content', 'created_at']
         read_only_fields = ['id', 'user', 'created_at']
+    
+    def validate_content(self, value):
+        if not value or not value.strip():
+            raise serializers.ValidationError("Содержимое сообщения не может быть пустым.")
+        if len(value) > 5000:
+            raise serializers.ValidationError("Содержимое сообщения не может превышать 5000 символов.")
+        return value
