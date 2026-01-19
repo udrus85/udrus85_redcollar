@@ -4,6 +4,31 @@ Django REST API бэкенд для управления географичес�
 
 ⚠️ **Проект использует PostgreSQL + PostGIS. SQLite используется как fallback без spatial index.**
 
+## 📚 Документация для собеседования
+
+Подготовка к техническому собеседованию по этому проекту:
+
+- **[INTERVIEW_CHECKLIST.md](INTERVIEW_CHECKLIST.md)** — чек-лист подготовки, сценарий demo, быстрые ответы
+- **[INTERVIEW_GUIDE.md](INTERVIEW_GUIDE.md)** — техническое руководство, архитектура, решения
+- **[INTERVIEW_QA.md](INTERVIEW_QA.md)** — 30 вопросов и развёрнутых ответов по проекту
+
+**Быстрый старт для собеседования:**
+```bash
+# 1. Установить и запустить
+python -m venv venv && source venv/bin/activate
+pip install -r requirements.txt
+USE_POSTGIS=0 python manage.py migrate
+python manage.py createsuperuser
+python manage.py runserver
+
+# 2. Протестировать API
+curl -X POST http://localhost:8000/api/auth/token/ -d "username=admin&password=admin"
+curl -X POST http://localhost:8000/api/points/ \
+  -H "Authorization: Token YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"name": "Test", "latitude": 55.75, "longitude": 37.61}'
+```
+
 ## Архитектурные решения
 
 - PostGIS используется для точных пространственных запросов и индексирования.
